@@ -22,7 +22,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import coil.annotation.ExperimentalCoilApi
 import coil.compose.ImagePainter
 import coil.compose.rememberImagePainter
 import com.eks.instagramclone.DestinationScreen
@@ -85,7 +84,7 @@ fun CommonImage(
     Image(
         painter = painter,
         contentDescription = "profile image",
-        modifier = modifier,
+        modifier = modifier.size(32.dp),
         contentScale = contentScale
     )
     if (painter.state is ImagePainter.State.Loading) {
@@ -97,8 +96,8 @@ fun CommonImage(
 fun UserImageCard(
     userImage: String?,
     modifier: Modifier = Modifier
-        .padding(8.dp)
-        .size(64.dp)
+        .padding(16.dp)
+        .size(32.dp)
 ) {
     Card(shape = CircleShape, modifier = Modifier) {
         if (userImage.isNullOrEmpty()) {
@@ -114,7 +113,7 @@ fun UserImageCard(
 }
 
 @Composable
-fun CommonDivider(){
+fun CommonDivider() {
     Divider(
         color = Color.LightGray,
         thickness = 1.dp,

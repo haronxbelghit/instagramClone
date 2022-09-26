@@ -1,5 +1,6 @@
 package com.eks.instagramclone
 
+import android.net.Uri
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.eks.instagramclone.data.Event
@@ -9,7 +10,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.net.URI
+import java.util.*
 import javax.inject.Inject
+import kotlin.math.sign
 
 const val USERS = "users"
 
@@ -26,7 +30,7 @@ class IgViewModel @Inject constructor(
     val popupNotification = mutableStateOf<Event<String?>?>(null)
 
     init {
-        auth.signOut()
+        //auth.signOut()
         val currentUser = auth.currentUser
         signedIn.value = currentUser != null
         currentUser?.uid?.let { uid ->
@@ -69,20 +73,20 @@ class IgViewModel @Inject constructor(
         }
         inProgress.value = true
         auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener{task->
-                if (task.isSuccessful){
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
                     signedIn.value = true
                     inProgress.value = false
-                    auth.currentUser?.uid?.let{uid->
+                    auth.currentUser?.uid?.let { uid ->
                         getUserData(uid)
                         handleException(customMessage = "login success")
                     }
-                }else{
+                } else {
                     handleException(task.exception, "Login Failed")
                     inProgress.value = false
                 }
             }
-            .addOnFailureListener { exc->
+            .addOnFailureListener { exc ->
                 handleException(exc, "Login Failed")
                 inProgress.value = false
             }
@@ -155,4 +159,41 @@ class IgViewModel @Inject constructor(
         popupNotification.value = Event(message)
     }
 
+    fun updateProfileData(
+        name: String,
+        username: String,
+        bio: String,
+    ) {
+        creatrOrUpdateProfile(name, username, null, bio)
+    }
+
+    private fun uploadImage(uri: Uri, onSuccess: (Uri) -> Unit) {
+        inProgress.value = true
+        val storageRef = storage.reference
+        val uuid = UUID.randomUUID()
+        val imageRef = storageRef.child("images/$uuid")
+        val uploadTask = imageRef.putFile(uri)
+        uploadTask
+            .addOnSuccessListener {
+                val result = it.metadata?.reference?.downloadUrl
+                result?.addOnSuccessListener(onSuccess)
+            }
+            .addOnFailureListener { exc ->
+                handleException(exc)
+                inProgress.value = false
+            }
+    }
+
+    fun uploadProfileImage(uri:Uri){
+        uploadImage(uri){
+            creatrOrUpdateProfile(imageUrl = it.toString())
+        }
+    }
+
+    fun onLogout(){
+        auth.signOut()
+        signedIn.value = false
+        userData.value = null
+        popupNotification.value = Event("Logged out")
+    }
 }
