@@ -17,10 +17,7 @@ import androidx.navigation.compose.rememberNavController
 import com.eks.instagramclone.auth.LoginScreen
 import com.eks.instagramclone.auth.ProfileScreen
 import com.eks.instagramclone.auth.SignUpScreen
-import com.eks.instagramclone.main.FeedScreen
-import com.eks.instagramclone.main.MyPostsScreen
-import com.eks.instagramclone.main.NotficationMessage
-import com.eks.instagramclone.main.SearchScreen
+import com.eks.instagramclone.main.*
 import com.eks.instagramclone.ui.theme.InstagramCloneTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -49,6 +46,9 @@ sealed class DestinationScreen(val route: String) {
     object Search : DestinationScreen("search")
     object MyPosts : DestinationScreen("myposts")
     object Profile : DestinationScreen("profile")
+    object NewPost : DestinationScreen("newpost/{imageUri}"){
+        fun createRoute(uri: String) = "newpost/$uri"
+    }
 }
 
 @Composable
@@ -76,6 +76,13 @@ fun InstagramApp() {
             MyPostsScreen(navController = navController, vm = vm)
         }
         composable(DestinationScreen.Profile.route) {
+            ProfileScreen(navController = navController, vm = vm)
+        }
+        composable(DestinationScreen.NewPost.route) {
+            val imageUri = it.arguments?.getString("imageUri")
+            imageUri?.let{
+                NewPostScreen(navController = navController, vm = vm, encodedUri = it)
+            }
             ProfileScreen(navController = navController, vm = vm)
         }
     }
